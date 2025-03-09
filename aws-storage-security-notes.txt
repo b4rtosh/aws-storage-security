@@ -1,0 +1,11 @@
+Infrastruktura on-premise (lokalna)
+- Serwer Aplikacja (aplikacja web/baza danych)
+- Rclone - narzędzie do przesyłania i synchronizacji danych między lokalnymi systemami a różnymi usługami chmurowymi, w tym Amazon S3.
+  Obsługuje przyrostową synchronizację, szyfrowanie, kompresję i deduplikację, co czyni go świetnym narzędziem do backupu. Narzędzie nie wymaga dodatkowych hostów w sieci tak jak np storage gateway.
+  W czasie konfiguracji wskazywany jest bucket S3, który ma byc podłączony do infrastruktury on-premise. Za pomocą skryptu wyzwalanego przez crontab np. raz dziennie tworzona jest kopia bazy danych,
+  która następnie jest kopiowana na S3.
+  
+AWS Cloud 
+- AWS S3 bucket, w któym przechowywane są kopie zapasowe (snapshots), z funkcjonalnością Vault lock, która zapobiega usunięciu kopii zapasowej przed okresem karencji nawet przez właściciela infrastruktury (jest to zabezpieczenia na wypadek przejęcia kontroli nad zasobami)
+- Instancja AWS EC2, która zostaje uruchomiona w przypadku gdy Application server ulega awarii. Instancja tworzona jest na podstawie wcześniej przygotowanego szablonu, w którym pobierane są potrzebne
+  paczki i oprogramowanie, pobrany zostaje najświeżsszy backup aplikacji z AWS S3, a następnie inicjalizowana zostaje odpowiednia usługa z pobranymi danymi.
