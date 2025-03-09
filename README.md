@@ -5,19 +5,24 @@
 title: Storage Backup
 ---
 flowchart LR
-    subgraph server[On-premise]
-    app[Application Server]
-    volumeGateway(AWS Volume Gateway)
-    app <-->|iSCSI| volumeGateway 
+    subgraph onprem[On-premise]
+    subgraph server[Server]
+    app[Application Server / Database]
+    rclone{RClone}
+    app <--> rclone 
+    end
     end
     subgraph aws[AWS]
     subgraph s3[S3]
-    volumeStorage[(Volume Storage)]
+    backup[Backup volume]
+    
+    backup --> snapshots
+    subgraph snapshots[Security and history]
     snapshot[Snapshot]
     vaultLock{Vault Lock}
-    volumeStorage --> snapshot
-    snapshot --> vaultLock
     end
+    end
+    lambda[AWS Lambda funtion]
     subgraph ec2[Backup EC2]
     ec2Instance[EC2 Instance]
     ec2Instance <--> backupVolume[(Backup Volume)]
@@ -25,6 +30,8 @@ flowchart LR
     end
     end
     
-    volumeGateway --> volumeStorage 
-    volumeStorage --> backupVolume
+    app <--> |Scheduled ping| lambda
+    lambda --> createVM
+    rclone <--> backup 
+    s3 --> backupVolume
     createVM --> ec2Instance
